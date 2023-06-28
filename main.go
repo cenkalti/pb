@@ -44,15 +44,20 @@ func readLines(r io.Reader, previousState *State, logFile io.Writer, done chan m
 		bar.ShowFinalTime = false
 		bar.Start()
 	}
+	h := md5.New()
 	lines := make(map[string]*Line)
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() { // Scanner stops when the stream is closed.
 		s := scanner.Text()
+		b := scanner.Bytes()
+		h.Reset()
+		h.Write(b)
+		sum := string(h.Sum(nil))
 		delta := time.Since(epoch)
-		line, ok := lines[s]
+		line, ok := lines[sum]
 		if !ok {
 			line = &Line{Delta: []time.Duration{delta}}
-			lines[s] = line
+			lines[sum] = line
 		} else {
 			line.Delta = append(line.Delta, delta)
 		}
@@ -62,7 +67,7 @@ func readLines(r io.Reader, previousState *State, logFile io.Writer, done chan m
 			fmt.Println(s)
 			continue
 		}
-		previousLine, ok := previousState.Lines[s]
+		previousLine, ok := previousState.Lines[sum]
 		if !ok {
 			continue
 		}
