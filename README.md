@@ -26,4 +26,4 @@ pb make all
 
 # Example run
 
-[![asciicast](https://asciinema.org/a/RV1nMSEhxukhbbqPW9JebwaIO.svg)](https://asciinema.org/a/RV1nMSEhxukhbbqPW9JebwaIO)
+[![asciicast](https://github.com/cenkalti/pb/blob/main/usage.gif)](https://asciinema.org/a/RV1nMSEhxukhbbqPW9JebwaIO)
