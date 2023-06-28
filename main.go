@@ -12,13 +12,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/Wing924/shellwords"
 	"github.com/cheggaaa/pb"
 )
-
-// TODO run pager (less) on command failure - https://groups.google.com/g/golang-nuts/c/vSdepJLePPk
 
 var epoch = time.Now()
 
@@ -99,11 +98,18 @@ func main() {
 
 	baseFilename := getFilename(args)
 	stateFilename := baseFilename + ".state"
+	logFilename := baseFilename + ".log"
 
 	previousState, err := readState(stateFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	logFile, err := os.Create(logFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Log:", logFile.Name())
 
 	var name string
 	shell := os.Getenv("SHELL")
@@ -116,21 +122,30 @@ func main() {
 	}
 
 	cmd := exec.Command(name, args...)
-	newState := runCmd(cmd, previousState, baseFilename)
+	newState := runCmd(cmd, previousState, logFile)
 
 	err = writeState(stateFilename, newState)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if previousState != nil {
+		pager := os.Getenv("PAGER")
+		if pager != "" {
+			cmd = exec.Command(pager, logFile.Name())
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				Foreground: true,
+			}
+			cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+			err = cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
 }
 
-func runCmd(cmd *exec.Cmd, previousState *State, baseFilename string) *State {
-	logFile, err := os.Create(fmt.Sprintf("%s.log", baseFilename))
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Log:", logFile.Name())
-
+func runCmd(cmd *exec.Cmd, previousState *State, logFile *os.File) *State {
 	// Create a Pipe to redirect both stdout and stderr to the same stream.
 	pr, pw, err := os.Pipe()
 	if err != nil {
