@@ -14,11 +14,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/Wing924/shellwords"
 	"github.com/cheggaaa/pb"
 )
 
 // TODO run pager (less) on command failure - https://groups.google.com/g/golang-nuts/c/vSdepJLePPk
-// TODO run command in shell if $SHELL is set
 
 var epoch = time.Now()
 
@@ -100,12 +100,19 @@ func main() {
 	baseFilename := getFilename(args)
 	stateFilename := baseFilename + ".state"
 
-	name := args[0]
-	args = args[1:]
-
 	previousState, err := readState(stateFilename)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	var name string
+	shell := os.Getenv("SHELL")
+	if shell != "" {
+		name = shell
+		args = append([]string{"-ic", shellwords.Join(args)})
+	} else {
+		name = args[0]
+		args = args[1:]
 	}
 
 	cmd := exec.Command(name, args...)
