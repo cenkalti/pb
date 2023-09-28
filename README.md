@@ -1,15 +1,15 @@
 # What is it?
 
-Console progress bar for commands that took long time to finish and produce too much output (i.e. build commands).
+Console progress bar for commands that takes long time to finish and produce too much output (i.e. build commands).
 
 It hides the output from your eyes and shows a nice progress bar instead.
 
 # How it works?
 
-- The position of the progress bar is calculated from the previous output of the command.
-- So when you run it first time, it only saves the lines to a temporary file.
+- The position of the progress bar is calculated from the output of previous execution of the command.
+- When you run it first time, it saves the output lines and timestamps to a temporary file.
 - When you run it again, it uses the timestamp information saved from the previous output to create the progress bar.
-- At the end execution, it opens the captured log file with your pager.
+- At the end of the execution, it opens the captured log file with your pager.
 
 # Install
 
